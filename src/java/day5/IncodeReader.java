@@ -1,95 +1,108 @@
 package day5;
 
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 public class IncodeReader {
-    public static void main(String[] args) {
-        IncodeReader incodeReader = new IncodeReader();
-        ArrayList<Integer> list = incodeReader.readDataInList();
-        incodeReader.SolvePuzzle(list, 5);
+    private ArrayList<Integer> list;
+    private int index;
+    private List<Integer> input;
+    private String state;
+    private List<Integer> output;
+
+    public IncodeReader(ArrayList<Integer> intcode, int startInput) {
+        this.list = intcode;
+        this.index = 0;
+        this.input = new ArrayList<>(Arrays.asList(startInput));
+        this.state = "Waiting for input";
+        this.output = new ArrayList<>();
     }
 
-    public ArrayList<Integer> readDataInList() {
-        ArrayList<Integer> list = new ArrayList<>();
-        InputStream inputStream = IncodeReader.class.getResourceAsStream("data.txt");
-
-        Scanner scan = new Scanner(inputStream).useDelimiter(",");
-
-        while (scan.hasNextInt()) {
-            list.add(scan.nextInt());
-        }
-        return list;
+    public void addInput(List<Integer> input){
+        this.input.addAll(input);
+        this.state = "Running";
+        this.SolvePuzzle();
     }
 
-    public ArrayList<Integer> SolvePuzzle(List<Integer> original_list, int input){
-        ArrayList<Integer> list = new ArrayList<>(original_list);
-        int i = 0;
-        while (i<list.size()) {
-            List<Integer> instructions = decomposeInstruction(list.get(i));
-            System.out.println(instructions);
+    public List<Integer> getOutput(){
+        return this.output;
+    }
+
+    public void deleteOutput(){
+        this.output = new ArrayList<>();
+    }
+
+    public String getState(){
+        return this.state;
+    }
+
+    public String SolvePuzzle(){
+        int param1 = 0;
+        int param2 = 0;
+        while (index<list.size()) {
+            List<Integer> instructions = decomposeInstruction(list.get(index));
+            if (instructions.get(0) != 3 && instructions.get(0) != 4 && instructions.get(0) != 99){
+                param1 = (instructions.get(1) == 0) ? list.get(list.get(index + 1)) : list.get(index + 1);
+                param2 = (instructions.get(2) == 0) ? list.get(list.get(index + 2)) : list.get(index + 2);
+            }
             switch (instructions.get(0)) {
                 case 1:
-                    int param1 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param2 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    list.set(list.get(i+3), param1 +param2);
-                    i = i + 4;
+                    list.set(list.get(index+3), param1 + param2);
+                    index = index + 4;
                     break;
                 case 2:
-                    int param3 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param4 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    list.set(list.get(i+3), param3 * param4);
-                    i = i + 4;
+                    list.set(list.get(index+3), param1 * param2);
+                    index = index + 4;
                     break;
                 case 3:
-                    list.set(list.get(i+1), input);
-                    i = i +2;
+                    if (input.isEmpty()){
+                        this.state = "Waiting for input";
+                        return this.state;
+                    } else {
+                        list.set(list.get(index+1), input.get(0));
+                        input.remove(0);
+                        index = index +2;
+                    }
                     break;
                 case 4:
-                    System.out.println("Diagnostic code: " + list.get(list.get(i+1)));
-                    i = i +2;
+                    int code = list.get(list.get(index+1));
+                    index += 2;
+                    this.output.add(code);
                     break;
                 case 5:
-                    int param5 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param6 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    if (param5 != 0){
-                        i = param6;
+                    if (param1 != 0){
+                        index = param2;
                     } else {
-                        i = i + 3;
+                        index = index + 3;
                     }
                     break;
                 case 6:
-                    int param7 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param8 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    if (param7 == 0){
-                        i = param8;
+                    if (param1 == 0){
+                        index = param2;
                     } else {
-                        i = i + 3;
+                        index = index + 3;
                     }
                     break;
                 case 7:
-                    int param9 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param10 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    list.set(list.get(i+3), (param9 < param10) ? 1 : 0);
-                    i = i+4;
+                    list.set(list.get(index+3), (param1 < param2) ? 1 : 0);
+                    index = index+4;
                     break;
                 case 8:
-                    int param11 = (instructions.get(1) == 0)?list.get(list.get(i + 1)):list.get(i+1);
-                    int param12 = (instructions.get(2) == 0)?list.get(list.get(i + 2)):list.get(i+2);
-                    list.set(list.get(i+3), param11 == param12 ? 1 : 0);
-                    i = i+4;
+                    list.set(list.get(index+3), param1 == param2 ? 1 : 0);
+                    index = index+4;
                     break;
                 case 99:
-                    System.out.println("Found a 99");
-                    return list;
+                    this.state = "END";
+                    return this.state;
                 default:
                     System.out.println("Code is " + instructions.get(0));
+                    System.out.println(list);
+                    System.out.println(index);
                     throw new RuntimeException("Puzzle does not work");
             }
         }
-        return list;
+        return "Error: got to the end of the list without getting a 99";
     }
 
 
@@ -101,5 +114,11 @@ public class IncodeReader {
         instructions.add((code-instructions.get(0)-instructions.get(1)*100 - instructions.get(2)*1000)/10000);
 
         return instructions;
+    }
+
+    @Override
+    public String toString() {
+
+        return "Inputs: " + this.input + " - Ouputs: " + this.output + " \n State: " + this.state;
     }
 }
