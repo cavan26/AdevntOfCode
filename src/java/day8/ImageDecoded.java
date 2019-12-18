@@ -8,10 +8,11 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class ImageDecoded {
-
     public static void main(String[] args) {
         ImageDecoded imageDecoded = new ImageDecoded();
-        System.out.println(imageDecoded.layerWithFewestDigits(imageDecoded.getLayers(imageDecoded.readDataInList(), 25, 6), 0));
+        List<List<Integer>> image = imageDecoded.getLayers(imageDecoded.readDataInList(), 25, 6);
+        List<Integer> decoded = imageDecoded.decodedImage(image, 25*6, image.size());
+        imageDecoded.printMessage(decoded, 25);
     }
 
     public ArrayList<Integer> readDataInList() {
@@ -50,20 +51,29 @@ public class ImageDecoded {
                 .count();
     }
 
-    public List<Integer> decodedImage(List<List<Integer>> layers, int sizeImage){
-        return layers.get(0);
-    }
+    public List<Integer> decodedImage(List<List<Integer>> layers, int sizeImage, int depthImage){
+        List<Integer> decodedImage = new ArrayList<>();
 
-    public int getPixelColor(List<Integer> pixels){
-        for (int pixel:pixels){
-            if (pixel == 0){
-                return 0;
-            } else if (pixel == 1){
-                return 1;
+        for (int i=0; i<sizeImage; i++){
+            decodedImage.add(2);
+            for (int j=0; j<depthImage; j++){
+                if (layers.get(j).get(i) != 2){
+                    decodedImage.set(i, layers.get(j).get(i));
+                    break;
+                }
             }
         }
-        return 2;
+        return decodedImage;
     }
 
-
+    public void printMessage(List<Integer> imageDecoded, int pixelWide){
+        int i=0;
+        while (i<imageDecoded.size()){
+            System.out.print(imageDecoded.get(i) + " ");
+            if ((i+1)%pixelWide == 0){
+                System.out.println("\n");
+            }
+            i+=1;
+        }
+    }
 }
