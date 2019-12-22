@@ -3,9 +3,11 @@ package day10;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class AsteroidDetector {
     private List<Asteroid> asteroidMap;
@@ -32,11 +34,11 @@ public class AsteroidDetector {
         }
         System.out.println(chosenAsteroid);
         System.out.println(chosenAsteroid.angleMap);
-        System.out.println(max);
+        System.out.println(asteroidDetector.findVaporisedAsteroid(chosenAsteroid, 200));
     }
 
     public List<Asteroid> getMap() {
-        InputStream inputStream = AsteroidDetector.class.getResourceAsStream("data_ex.txt");
+        InputStream inputStream = AsteroidDetector.class.getResourceAsStream("data.txt");
         Scanner scan = new Scanner(inputStream).useDelimiter("\n");
         int j = 0;
         while (scan.hasNext()) {
@@ -61,7 +63,7 @@ public class AsteroidDetector {
             if (!(x==0&&y==0)) {
                 double angle = Math.atan2(y, x) + Math.PI/2;
                 if (angle<0){
-                    angle = 2*Math.PI - angle;
+                    angle = 2*Math.PI + angle;
                 }
                 if (setAngle.containsKey(angle)){
                     List<Asteroid> list = setAngle.get(angle);
@@ -74,28 +76,35 @@ public class AsteroidDetector {
             }
         }
         return setAngle.keySet().size();
-
     }
 
-//    public int findVaporisedAsteroid(Asteroid asteroid, int number){
-//        int count = 0;
-//        int i = 0;
-//        List<Double> keys = new ArrayList<>(asteroid.angleMap.keySet());
-//        System.out.println(keys);
-//        while (count <= number){
-//            int value = asteroid.angleMap.get(keys.get(i));
-//            asteroid.angleMap.put(keys.get(i), value - 1);
-//            if (value == 1){
-//                keys.remove(i);
-//            }
-//            if (i==keys.size()-1){
-//                i = 0;
-//            } else {
-//                i+=1;
-//            }
-//        }
-//        return 0;
-//    }
+    public Asteroid findVaporisedAsteroid(Asteroid asteroid, int number){
+        int count = 0;
+        int i = 0;
+        Asteroid lastasteroid = new Asteroid(0,0);
+        List<Double> keys = new ArrayList<>(asteroid.angleMap.keySet());
+        while (count < number){
+            List<Double> listAsteroid = asteroid.angleMap.get(keys.get(i))
+                    .stream().map(x -> Math.pow(x.x-asteroid.x,2) + Math.pow(x.y-asteroid.y,2))
+                    .collect(Collectors.toList());
+            lastasteroid = asteroid.angleMap.get(keys.get(i))
+                    .remove(listAsteroid.indexOf(Collections.min(listAsteroid)));
+            if (asteroid.angleMap.get(keys.get(i)).isEmpty()){
+                keys.remove(i);
+                if (i==keys.size()){
+                    i=0;
+                }
+            } else {
+                if (i==keys.size()){
+                    i = 0;
+                } else {
+                    i+=1;
+                }
+            }
+            count += 1;
+        }
+        return lastasteroid;
+    }
 
     private class Asteroid{
         private int x;

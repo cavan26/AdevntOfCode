@@ -118,7 +118,6 @@ public class IncodeReader {
 
     @Override
     public String toString() {
-
         return "Inputs: " + this.input + " - Ouputs: " + this.output + " \n State: " + this.state;
     }
 }
